@@ -2,3 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 5px;
+    font: 12px sans-serif;
+    background: #ffffff;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    pointer-events: none;
+  }
