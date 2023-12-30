@@ -10,7 +10,7 @@ const user = {
 }
 const navigation = [
   { name: 'Dashboard', href: '#', current: true },
-  { name: 'View Code', href: '#', current: false },
+  { name: 'View Code', href: 'https://drive.google.com/drive/folders/1yyy0a2r2O4N8-A5Yi1PMm5Yl8Gr1HzIp?usp=sharing', current: false },
 ]
 const userNavigation = [
   { name: 'Your Profile', href: '#' },
