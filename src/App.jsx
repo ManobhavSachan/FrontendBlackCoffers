@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import SelectMenu from "./components/SelectMenu";
@@ -51,20 +49,52 @@ function App() {
   const [apiData, setApiData] = useState([]);
   const [error, setError] = useState(null);
 
+  const [filters, setFilters] = useState({
+    endYear: "",
+    topics: "",
+    sector: "",
+    region: "",
+    pest: "",
+    source: "",
+    swot: "",
+    country: "",
+  });
+
+  // Function to handle filter changes
+  const handleFilterChange = (filterName, value) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: value == "All" ? "" : value,
+    }));
+  };
+
+  const handleSelectChange = (option, name) => {
+    handleFilterChange(name, option);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "https://backend-black-coffers.onrender.com/api/filters"
+        );
+        setApiData(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Error fetching data");
+      }
+    };
+
+    fetchData();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
           "https://backend-black-coffers.onrender.com/api/data",
-          {
-            // Your filter parameters go here
-            // end_ear: 2023,
-            // region: "Western Africa",
-            // Add other parameters as needed
-          }
+          filters
         );
-
-        setApiData(response.data);
         setIntensity(createDataObject(response.data, "intensity"));
         setLikelihood(createDataObject(response.data, "likelihood"));
         setRelevance(createDataObject(response.data, "relevance"));
@@ -80,34 +110,29 @@ function App() {
     };
 
     fetchData();
-  }, []); // Empty dependency array to execute the effect only once when the component mounts
+  }, [filters]);
 
   const createDataObject = (responseData, property) => {
-    // Create an array to store the data
     const data = [];
-
-    // Iterate through the response data
     responseData.forEach((item) => {
-      const propertyValue = item[property];
-
+      let propertyValue = item[property];
+      if (propertyValue == "") {
+        propertyValue = "Others";
+      }
       const existingDataObject = data.find(
         (obj) => obj[property] === propertyValue
       );
 
       if (existingDataObject) {
-        // If the data object is present, update its frequency value
         existingDataObject.frequency++;
       } else {
-        // If the data object is not present, create a new one
         data.push({
           [property]: propertyValue,
-          frequency: 1, // Set the initial frequency to 1
+          frequency: 1,
         });
       }
     });
     data.sort((a, b) => a[property] - b[property]);
-    console.log("ans", { data });
-    // setTest({data});
     return { data };
   };
 
@@ -116,18 +141,64 @@ function App() {
       <Navbar />
       <div className="p-4">
         <div className="flex justify-center space-x-4">
-          <SelectMenu title="End Year" />
-          <SelectMenu title="Topic" />
-          <SelectMenu title="Sector" />
-          <SelectMenu title="Region" />
+          {apiData.distinctEndYears && (
+            <SelectMenu
+              title="End Year"
+              options={apiData.distinctEndYears}
+              onSelectChange={(e) => handleSelectChange(e, "endYear")}
+            />
+          )}
+
+          {apiData.distinctTopics && (
+            <SelectMenu
+              title="Topics"
+              options={apiData.distinctTopics}
+              onSelectChange={(e) => handleSelectChange(e, "topics")}
+            />
+          )}
+
+          {apiData.distinctSectors && (
+            <SelectMenu
+              title="Sector"
+              options={apiData.distinctSectors}
+              onSelectChange={(e) => handleSelectChange(e, "sector")}
+            />
+          )}
+
+          {apiData.distinctRegions && (
+            <SelectMenu
+              title="Region"
+              options={apiData.distinctRegions}
+              onSelectChange={(e) => handleSelectChange(e, "region")}
+            />
+          )}
         </div>
         <div className="flex justify-center space-x-4 pt-2">
-          <SelectMenu title="Pestle" />
-          <SelectMenu title="Source" />
-          <SelectMenu title="Country" />
+          {apiData.distinctPESTs && (
+            <SelectMenu
+              title="PEST"
+              options={apiData.distinctPESTs}
+              onSelectChange={(e) => handleSelectChange(e, "pest")}
+            />
+          )}
+
+          {apiData.distinctSources && (
+            <SelectMenu
+              title="Source"
+              options={apiData.distinctSources}
+              onSelectChange={(e) => handleSelectChange(e, "source")}
+            />
+          )}
+
+          {apiData.distinctSWOTs && (
+            <SelectMenu
+              title="Country"
+              options={apiData.distinctSWOTs}
+              onSelectChange={(e) => handleSelectChange(e, "country")}
+            />
+          )}
         </div>
-        <div className="flex justify-center space-x-4 pt-2">
-          
+        <div className="flex justify-center space-x-4 pt-10">
           {likelihood.data && (
             <BarChart
               data={likelihood}
@@ -135,6 +206,7 @@ function App() {
               ylabel="Frequency"
               keyword="likelihood"
               rotate={false}
+              title="Likelihood Chart"
             />
           )}
           {relevance.data && (
@@ -143,16 +215,18 @@ function App() {
               xlabel="Relevance"
               ylabel="Frequency"
               keyword="relevance"
+              title="Relevance Chart"
             />
           )}
         </div>
         <div className="flex justify-center space-x-4 pt-2">
-        {intensity.data && (
+          {intensity.data && (
             <BarChart
               data={intensity}
               xlabel="Intensity"
               ylabel="Frequency"
               keyword="intensity"
+              title="Intensity Chart"
             />
           )}
           {year.data && (
@@ -161,22 +235,23 @@ function App() {
               xlabel="Year"
               ylabel="Frequency"
               keyword="end_year"
+              title="Year Chart"
             />
           )}
-          
         </div>
         <div className="flex justify-center space-x-4 pt-2">
-        {country.data && (
+          {country.data && (
             <BarChart
               data={country}
               xlabel="Country"
               ylabel="Frequency"
               keyword="country"
               rotate={true}
+              title="Country Chart"
             />
           )}
-          </div>
-          <div className="flex justify-center space-x-4 pt-2">
+        </div>
+        <div className="flex justify-center space-x-4 pt-2">
           {topics.data && (
             <BarChart
               data={topics}
@@ -184,9 +259,10 @@ function App() {
               ylabel="Frequency"
               keyword="topic"
               rotate={true}
+              title="Topics Chart"
             />
           )}
-          </div>
+        </div>
         <div className="flex justify-center space-x-4 pt-2">
           {region.data && (
             <BarChart
@@ -195,12 +271,11 @@ function App() {
               ylabel="Frequency"
               keyword="region"
               rotate={true}
+              title="Region Chart"
             />
           )}
         </div>
       </div>
-
-      {/* <h1 className="text-3xl font-bold underline">Hello world!</h1> */}
     </>
   );
 }

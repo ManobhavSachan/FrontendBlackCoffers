@@ -4,17 +4,17 @@ import "./../index.css";
 
 const BarChart = (props) => {
   const data = props.data;
-  console.log("bar", data);
+  // console.log("bar", data);
   const letter = props?.keyword || "letter";
   const chartRef = useRef();
 
   useEffect(() => {
     const width = 900;
     const height = 500;
-    const marginTop = 40; // Increased margin for title
+    const marginTop = 50;
     const marginRight = 0;
-    const marginBottom = 100; // Increased margin for x-axis label and scrollable container
-    const marginLeft = 70; // Increased margin for y-axis label
+    const marginBottom = props.rotate ? 200: 100;
+    const marginLeft = 70;
 
     // Tooltip
     const tooltip = d3
@@ -59,7 +59,6 @@ const BarChart = (props) => {
       .on("mouseover", (event, d) => {
         const xValue = d[letter];
         const yValue = d.frequency;
-        // console.log("x", xValue, "y", yValue);
         tooltip.transition().duration(200).style("opacity", 0.9);
 
         tooltip
@@ -93,6 +92,7 @@ const BarChart = (props) => {
     }
 
     // Title
+    if(props.rotate){
     svg
       .append("text")
       .attr("class", "chart-title")
@@ -101,30 +101,50 @@ const BarChart = (props) => {
       .style("text-anchor", "middle")
       .style("font-size", "20px")
       .text(props.title);
-
+    }
+    else{
+      svg
+      .append("text")
+      .attr("class", "chart-title")
+      .attr("x", width / 2)
+      .attr("y", marginTop / 2)
+      .style("text-anchor", "middle")
+      .style("font-size", "30px")
+      .text(props.title);
+    }
     // X Axis Label
-    svg
+    if(props.rotate){svg
+      .append("text")
+      .attr("class", "x-axis-label")
+      .attr("x", width / 2)
+      .attr("y", height - marginBottom / 3) // Adjusted position for better spacing
+      .style("text-anchor", "middle");
+    }
+    else{svg
       .append("text")
       .attr("class", "x-axis-label")
       .attr("x", width / 2)
       .attr("y", height - marginBottom / 3) // Adjusted position for better spacing
       .style("text-anchor", "middle")
       .text(props.xlabel);
-
+    }
     // Y Axis Label
+
+    svg
+      .append("g")
+      .attr("class", "y-axis")
+      .attr("transform", `translate(${marginLeft},0)`)
+      .call(d3.axisLeft(y))
+      .call((g) => g.select(".domain").remove());
+
     // Y Axis
-svg
-.append("g")
-.attr("class", "y-axis")
-.attr("transform", `translate(${marginLeft},0)`)
-.call(d3.axisLeft(y))
-.call(g => g.select(".domain").remove());
+
     svg
       .append("text")
       .attr("class", "y-axis-label")
       .attr("transform", "rotate(-90)")
       .attr("x", -height / 2)
-      .attr("y", marginLeft / 3) // Adjusted position for better spacing
+      .attr("y", marginLeft / 3)
       .style("text-anchor", "middle")
       .text(props.ylabel);
 
@@ -158,7 +178,7 @@ svg
     }
   }, [data]);
 
-  return <svg ref={chartRef} />;
+  return <svg key={JSON.stringify(data)} ref={chartRef} />;
 };
 
 export default BarChart;
